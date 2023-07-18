@@ -1,7 +1,9 @@
-using AccountContext = SimpleBankAPI.Data.AccountContext;
 using Microsoft.EntityFrameworkCore;
 using SimpleBankAPI.Interfaces;
-using SimpleBankAPI.Services;
+using SimpleBankAPI.Repositories;
+using AccountServices = SimpleBankAPI.Services.AccountServices;
+using AccountContext = SimpleBankAPI.Data.AccountContext;
+using Account = SimpleBankAPI.Models.Entities.Account;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,8 @@ services.AddDbContext<AccountContext>(opt =>
     opt.UseInMemoryDatabase("Accounts"));
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
-services.AddTransient<ISavableCollection, AccountContext>();
+services.AddTransient<ISavableCollection<Account>, AccountContext>();
+services.AddTransient<IAccountRepository, AccountRepository>();
 services.AddTransient<IAccountServices, AccountServices>();
 var app = builder.Build();
 

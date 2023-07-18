@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Account = SimpleBankAPI.Models.Entities.Account;
-using ISavableCollection = SimpleBankAPI.Interfaces.ISavableCollection;
 
 namespace SimpleBankAPI.Data;
 
-public class AccountContext : DbContext, ISavableCollection
+public class AccountContext : DbContext, Interfaces.ISavableCollection<Account>
 {
     public DbSet<Account> Accounts { private get; init; }
     

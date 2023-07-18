@@ -1,10 +1,10 @@
-using Account = SimpleBankAPI.Models.Entities.Account;
+using SimpleBankAPI.Models.Entities;
 
 namespace SimpleBankAPI.Interfaces;
 
-public interface ISavableCollection
+public interface ISavableCollection<T>
 {
-    void Add(Account account);
-    ValueTask<Account?> FindAsync(Guid id);
+    void Add(T account);
+    ValueTask<T?> FindAsync(Guid id);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
