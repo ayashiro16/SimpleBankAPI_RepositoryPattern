@@ -3,7 +3,7 @@ using Account = SimpleBankAPI.Models.Entities.Account;
 
 namespace SimpleBankAPI.Repositories;
 
-public class AccountRepository : Interfaces.IAccountRepository<Account>
+public class AccountRepository : Interfaces.IAccountRepository
 {
     private readonly ISavableCollection<Account> _context;
 
@@ -17,17 +17,15 @@ public class AccountRepository : Interfaces.IAccountRepository<Account>
         return _context.FindAsync(id);
     }
 
-    public Account Add(Account account)
+    public void Add(Account account)
     {
         _context.Add(account);
         _context.SaveChangesAsync();
-        return account;
     }
 
-    public Account Update(Account account, decimal amount)
+    public void Update(Account account, decimal amount)
     {
         account.Balance += amount;
         _context.SaveChangesAsync();
-        return account;
     }
 }

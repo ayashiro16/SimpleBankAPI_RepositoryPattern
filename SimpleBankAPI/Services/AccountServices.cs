@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using SimpleBankAPI.Interfaces;
 using SimpleBankAPI.Models.Responses;
 using Account = SimpleBankAPI.Models.Entities.Account;
@@ -6,11 +7,11 @@ namespace SimpleBankAPI.Services;
 
 public class AccountServices: IAccountServices
 {
-    private readonly ISavableCollection _context;
+    private readonly IAccountRepository _accountRepository;
     
-    public AccountServices(ISavableCollection context)
+    public AccountServices(IAccountRepository accountRepository)
     {
-        _context = context;
+        _accountRepository = accountRepository;
     }
     
     /// <summary>
@@ -21,22 +22,14 @@ public class AccountServices: IAccountServices
     /// <exception cref="ArgumentException"></exception>
     public async Task<Account> CreateAccount(string name)
     {
-        if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentException("Name field cannot be empty or white space");
-        }
-        if (!name.All(x => char.IsWhiteSpace(x) || char.IsLetter(x)))
-        {
-            throw new ArgumentException("Name cannot contain special characters or numbers");
-        }
+        ValidateName(name);
         var account = new Account()
         {
             Name = name, 
             Balance = 0, 
             Id = Guid.NewGuid()
         };
-        _context.Add(account);
-        await _context.SaveChangesAsync();
+        _accountRepository.Add(account);
 
         return account;
     }
@@ -46,7 +39,7 @@ public class AccountServices: IAccountServices
     /// </summary>
     /// <param name="id">The account Id</param>
     /// <returns>The account details</returns>
-    public ValueTask<Account?> FindAccount(Guid id) => _context.FindAsync(id);
+    public ValueTask<Account?> FindAccount(Guid id) => _accountRepository.Get(id);
     
     /// <summary>
     /// Deposits funds to an account
@@ -57,17 +50,13 @@ public class AccountServices: IAccountServices
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public async Task<Account?> DepositFunds(Guid id, decimal amount)
     {
-        if (amount < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(amount), "Cannot give a negative amount");
-        }
-        var account = await _context.FindAsync(id);
+        ValidatePositiveAmount(amount);
+        var account = await _accountRepository.Get(id);
         if (account is null)
         {
             return account;
         }
-        account.Balance += amount;
-        await _context.SaveChangesAsync();
+        _accountRepository.Update(account, amount);
         
         return account;
     }
@@ -82,21 +71,14 @@ public class AccountServices: IAccountServices
     /// <exception cref="InvalidOperationException"></exception>
     public async Task<Account?> WithdrawFunds(Guid id, decimal amount)
     {
-        if (amount < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(amount), "Cannot give a negative amount");
-        }
-        var account = await _context.FindAsync(id);
+        ValidatePositiveAmount(amount);
+        var account = await _accountRepository.Get(id);
         if (account is null)
         {
             return account;
         }
-        if (account.Balance < amount)
-        {
-            throw new InvalidOperationException("Insufficient funds");
-        }
-        account.Balance -= amount;
-        await _context.SaveChangesAsync();
+        ValidateSufficientFunds(account.Balance, amount);
+        _accountRepository.Update(account, amount * -1);
         
         return account;
     }
@@ -112,24 +94,45 @@ public class AccountServices: IAccountServices
     /// <exception cref="InvalidOperationException"></exception>
     public async Task<Transfer> TransferFunds(Guid senderId, Guid recipientId, decimal amount)
     {
-        if (amount < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(amount), "Cannot give a negative amount");
-        }
-        var sender = await _context.FindAsync(senderId);
-        var recipient = await _context.FindAsync(recipientId);
+        ValidatePositiveAmount(amount);
+        var sender = await _accountRepository.Get(senderId);
+        var recipient = await _accountRepository.Get(recipientId);
         if (sender is null || recipient is null)
         {
             return new Transfer(sender, recipient);
         }
-        if (sender.Balance < amount)
+        ValidateSufficientFunds(sender.Balance, amount);
+        _accountRepository.Update(sender, amount * -1);
+        _accountRepository.Update(recipient, amount);
+
+        return new Transfer(sender, recipient);
+    }
+
+    private static void ValidateName(string name)
+    {
+        if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Name field cannot be empty or white space");
+        }
+        if (!name.All(x => char.IsWhiteSpace(x) || char.IsLetter(x)))
+        {
+            throw new ArgumentException("Name cannot contain special characters or numbers");
+        }
+    }
+    
+    private static void ValidatePositiveAmount(decimal amount)
+    {
+        if (amount < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amount), "Cannot give a negative amount");
+        }
+    }
+
+    private static void ValidateSufficientFunds(decimal balance, decimal amount)
+    {
+        if (balance < amount)
         {
             throw new InvalidOperationException("Insufficient funds");
         }
-        sender.Balance -= amount;
-        recipient.Balance += amount;
-        await _context.SaveChangesAsync();
-        
-        return new Transfer(sender, recipient);
     }
 }

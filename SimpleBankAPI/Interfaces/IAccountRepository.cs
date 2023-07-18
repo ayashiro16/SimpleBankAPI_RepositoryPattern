@@ -1,8 +1,10 @@
+using Account = SimpleBankAPI.Models.Entities.Account;
+
 namespace SimpleBankAPI.Interfaces;
 
-public interface IAccountRepository<T>
+public interface IAccountRepository
 {
-    ValueTask<T?> Get(Guid id);
-    T Add(T account);
-    T Update(T account, decimal amount);
+    ValueTask<Account?> Get(Guid id);
+    void Add(Account account);
+    void Update(Account account, decimal amount);
 }

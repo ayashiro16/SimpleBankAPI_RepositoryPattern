@@ -1,4 +1,4 @@
-using SimpleBankAPI.Models.Responses;
+using Transfer = SimpleBankAPI.Models.Responses.Transfer;
 using Account = SimpleBankAPI.Models.Entities.Account;
 
 namespace SimpleBankAPI.Interfaces;
