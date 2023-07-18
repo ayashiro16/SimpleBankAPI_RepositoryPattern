@@ -108,6 +108,11 @@ public class AccountServices: IAccountServices
         return new Transfer(sender, recipient);
     }
 
+    /// <summary>
+    /// Throws the corresponding exception if a given name is invalid
+    /// </summary>
+    /// <param name="name">The user provided name</param>
+    /// <exception cref="ArgumentException">Exception thrown if name is empty/whitespace or has special chars/numbers</exception>
     private static void ValidateName(string name)
     {
         if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
@@ -120,6 +125,11 @@ public class AccountServices: IAccountServices
         }
     }
     
+    /// <summary>
+    /// Throws the corresponding exception if a given amount is negative
+    /// </summary>
+    /// <param name="amount">The user provided dollar amount</param>
+    /// <exception cref="ArgumentOutOfRangeException">Exception thrown if amount is negative</exception>
     private static void ValidatePositiveAmount(decimal amount)
     {
         if (amount < 0)
@@ -128,6 +138,12 @@ public class AccountServices: IAccountServices
         }
     }
 
+    /// <summary>
+    /// Throws the corresponding exception if a given amount is greater than the user's balance
+    /// </summary>
+    /// <param name="balance">The user's current balance</param>
+    /// <param name="amount">The user provided dollar amount</param>
+    /// <exception cref="InvalidOperationException">Exception thrown if account has insufficient funds</exception>
     private static void ValidateSufficientFunds(decimal balance, decimal amount)
     {
         if (balance < amount)
