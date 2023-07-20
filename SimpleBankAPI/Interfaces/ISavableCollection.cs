@@ -1,5 +1,3 @@
-using SimpleBankAPI.Models.Entities;
-
 namespace SimpleBankAPI.Interfaces;
 
 public interface ISavableCollection<T>
