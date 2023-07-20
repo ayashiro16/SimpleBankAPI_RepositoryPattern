@@ -35,6 +35,34 @@ namespace SimpleBankAPI.Controllers
         }
         
         /// <summary>
+        /// Retrieves the converted account balances for a given list of currencies
+        /// </summary>
+        /// <param name="id">The account ID</param>
+        /// <param name="request">List of currency codes; empty request returns all currencies</param>
+        /// <returns>List of converted user balances</returns>
+        [HttpGet("{id:Guid}/converts")]
+        public async Task<ActionResult<IEnumerable<ConvertCurrency>>> GetConvertedCurrency(Guid id, string? request)
+        {
+            try
+            {
+                var converted = await _account.GetConvertedCurrency(id, request);
+                return new ActionResult<IEnumerable<ConvertCurrency>>(converted);
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (EntryPointNotFoundException e)
+            {
+                return Problem(e.Message);
+            }
+            catch (HttpRequestException e)
+            {
+                return Problem(e.Message);
+            }
+        }
+        
+        /// <summary>
         /// Create and store a new account with the provided user's name
         /// </summary>
         /// <param name="request">The string "Name" of the account holder</param>
