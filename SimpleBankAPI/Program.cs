@@ -1,4 +1,3 @@
-using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using SimpleBankAPI.Clients;
 using SimpleBankAPI.Interfaces;

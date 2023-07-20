@@ -3,7 +3,7 @@ using Account = SimpleBankAPI.Models.Entities.Account;
 
 namespace SimpleBankAPI.Repositories;
 
-public class AccountRepository : Interfaces.IAccountRepository
+public class AccountRepository : IAccountRepository
 {
     private readonly ISavableCollection<Account> _context;
 
