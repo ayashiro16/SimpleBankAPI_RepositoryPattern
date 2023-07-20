@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using SimpleBankAPI.Interfaces;
 using SimpleBankAPI.Models.Responses;
 using Account = SimpleBankAPI.Models.Entities.Account;
@@ -8,10 +7,18 @@ namespace SimpleBankAPI.Services;
 public class AccountServices: IAccountServices
 {
     private readonly IAccountRepository _accountRepository;
-    
-    public AccountServices(IAccountRepository accountRepository)
+    private readonly ICurrencyRate _currencyRate;
+    private readonly IFactory<IValidator?> _validators;
+    private const string Username = "Username";
+    private const string Amount = "Amount";
+    private const string CurrencyCode = "CurrencyCode";
+    private const string SufficientFunds = "SufficientFunds";
+
+    public AccountServices(IAccountRepository accountRepository, ICurrencyRate currencyRate, IFactory<IValidator?> validators)
     {
         _accountRepository = accountRepository;
+        _currencyRate = currencyRate;
+        _validators = validators;
     }
     
     /// <summary>
@@ -22,7 +29,7 @@ public class AccountServices: IAccountServices
     /// <exception cref="ArgumentException"></exception>
     public async Task<Account> CreateAccount(string name)
     {
-        ValidateName(name);
+        _validators[Username]?.Validate(name);
         var account = new Account()
         {
             Name = name, 
@@ -50,7 +57,7 @@ public class AccountServices: IAccountServices
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public async Task<Account?> DepositFunds(Guid id, decimal amount)
     {
-        ValidatePositiveAmount(amount);
+        _validators[Amount]?.Validate(amount);
         var account = await _accountRepository.Get(id);
         if (account is null)
         {
@@ -71,13 +78,13 @@ public class AccountServices: IAccountServices
     /// <exception cref="InvalidOperationException"></exception>
     public async Task<Account?> WithdrawFunds(Guid id, decimal amount)
     {
-        ValidatePositiveAmount(amount);
+        _validators[Amount]?.Validate(amount);
         var account = await _accountRepository.Get(id);
         if (account is null)
         {
             return account;
         }
-        ValidateSufficientFunds(account.Balance, amount);
+        _validators[SufficientFunds]?.Validate((account.Balance, amount));
         _accountRepository.Update(account, amount * -1);
         
         return account;
@@ -94,61 +101,34 @@ public class AccountServices: IAccountServices
     /// <exception cref="InvalidOperationException"></exception>
     public async Task<Transfer> TransferFunds(Guid senderId, Guid recipientId, decimal amount)
     {
-        ValidatePositiveAmount(amount);
+        _validators[Amount]?.Validate(amount);
         var sender = await _accountRepository.Get(senderId);
         var recipient = await _accountRepository.Get(recipientId);
         if (sender is null || recipient is null)
         {
             return new Transfer(sender, recipient);
         }
-        ValidateSufficientFunds(sender.Balance, amount);
+        _validators[SufficientFunds]?.Validate((sender.Balance, amount));
         _accountRepository.Update(sender, amount * -1);
         _accountRepository.Update(recipient, amount);
 
         return new Transfer(sender, recipient);
     }
 
-    /// <summary>
-    /// Throws the corresponding exception if a given name is invalid
-    /// </summary>
-    /// <param name="name">The user provided name</param>
-    /// <exception cref="ArgumentException">Exception thrown if name is empty/whitespace or has special chars/numbers</exception>
-    private static void ValidateName(string name)
+    public async Task<IEnumerable<ConvertCurrency>> GetConvertedCurrency(Guid id, string? currencies)
     {
-        if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
+        var account = await _accountRepository.Get(id);
+        if (account is null)
         {
-            throw new ArgumentException("Name field cannot be empty or white space");
+            throw new EntryPointNotFoundException("Could not find account associated with given ID");
         }
-        if (!name.All(x => char.IsWhiteSpace(x) || char.IsLetter(x)))
+        _validators[CurrencyCode]?.Validate(currencies);
+        var rates = await _currencyRate.GetConversionRates(currencies?.Trim());
+        if (rates is null)
         {
-            throw new ArgumentException("Name cannot contain special characters or numbers");
+            throw new HttpRequestException("Could not retrieve currency rate data");
         }
-    }
-    
-    /// <summary>
-    /// Throws the corresponding exception if a given amount is negative
-    /// </summary>
-    /// <param name="amount">The user provided dollar amount</param>
-    /// <exception cref="ArgumentOutOfRangeException">Exception thrown if amount is negative</exception>
-    private static void ValidatePositiveAmount(decimal amount)
-    {
-        if (amount < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(amount), "Cannot give a negative amount");
-        }
-    }
-
-    /// <summary>
-    /// Throws the corresponding exception if a given amount is greater than the user's balance
-    /// </summary>
-    /// <param name="balance">The user's current balance</param>
-    /// <param name="amount">The user provided dollar amount</param>
-    /// <exception cref="InvalidOperationException">Exception thrown if account has insufficient funds</exception>
-    private static void ValidateSufficientFunds(decimal balance, decimal amount)
-    {
-        if (balance < amount)
-        {
-            throw new InvalidOperationException("Insufficient funds");
-        }
+        var balance = account.Balance;
+        return rates.Select(rate => new ConvertCurrency(rate.Key, balance * (decimal)rate.Value));
     }
 }

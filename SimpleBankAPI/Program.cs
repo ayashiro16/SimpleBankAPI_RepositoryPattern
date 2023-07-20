@@ -1,9 +1,12 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using SimpleBankAPI.Clients;
 using SimpleBankAPI.Interfaces;
 using SimpleBankAPI.Repositories;
-using AccountServices = SimpleBankAPI.Services.AccountServices;
-using AccountContext = SimpleBankAPI.Data.AccountContext;
-using Account = SimpleBankAPI.Models.Entities.Account;
+using SimpleBankAPI.Services;
+using SimpleBankAPI.Data;
+using SimpleBankAPI.Models.Entities;
+using SimpleBankAPI.Factories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +17,12 @@ services.AddDbContext<AccountContext>(opt =>
     opt.UseInMemoryDatabase("Accounts"));
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
+services.AddSingleton<ICurrencyRate, CurrencyClient>();
+services.AddSingleton<IFactory<IValidator?>, ValidatorFactory>();
 services.AddTransient<ISavableCollection<Account>, AccountContext>();
 services.AddTransient<IAccountRepository, AccountRepository>();
 services.AddTransient<IAccountServices, AccountServices>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
