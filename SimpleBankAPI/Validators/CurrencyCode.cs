@@ -8,10 +8,17 @@ public class CurrencyCode : Interfaces.IValidator
         {
             return true;
         }
-        var codes = (string)currencyCodes;
-        if (!codes.Trim().All(c=> char.IsUpper(c) || c == ','))
+        var codes = ((string)currencyCodes).Trim().ToUpper();
+        if (!codes.All(c => char.IsLetter(c) || c == ','))
         {
-            throw new ArgumentException("Must provide currency codes in all caps, separated by only commas if providing multiple codes");
+            throw new ArgumentException("Cannot include numbers or special characters in currency codes. " +
+                                        "Please enter 3-letter currency codes separated by commas if entering multiple codes.");
+        }
+        var allCodes = codes.Split(",");
+        if (allCodes.Any(code => code.Length != 3))
+        {
+            throw new ArgumentException("Currency codes must be 3 letters long. " +
+                                        "Please enter 3-letter currency codes separated by commas if entering multiple codes.");
         }
         
         return true;
