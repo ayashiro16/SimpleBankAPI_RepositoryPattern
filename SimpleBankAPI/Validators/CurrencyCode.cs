@@ -9,6 +9,10 @@ public class CurrencyCode : Interfaces.IValidator
             return true;
         }
         var codes = ((string)currencyCodes).Trim().ToUpper();
+        if (codes.Length == 0)
+        {
+            return true;
+        }
         if (!codes.All(c => char.IsLetter(c) || c == ','))
         {
             throw new ArgumentException("Cannot include numbers or special characters in currency codes. " +

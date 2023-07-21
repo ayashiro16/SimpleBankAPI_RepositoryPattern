@@ -40,8 +40,9 @@ namespace SimpleBankAPI.Controllers
         /// <param name="id">The account ID</param>
         /// <param name="currencyCodes">List of currency codes; empty request returns all currencies</param>
         /// <returns>List of converted user balances</returns>
-        [HttpGet("{id:Guid}/converts/{currencyCodes}")]
-        public async Task<ActionResult<IEnumerable<ConvertCurrency>>> GetConvertedCurrency(Guid id, string? currencyCodes)
+        [HttpGet("{id:Guid}/converts")]
+        [HttpGet("{id:Guid}/converts/{currencyCodes?}")]
+        public async Task<ActionResult<IEnumerable<ConvertCurrency>>> GetConvertedCurrency(Guid id, string? currencyCodes = "")
         {
             try
             {
