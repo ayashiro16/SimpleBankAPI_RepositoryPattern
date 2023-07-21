@@ -1,7 +1,6 @@
 using SimpleBankAPI.Interfaces;
 using SimpleBankAPI.Models.Responses;
 using Account = SimpleBankAPI.Models.Entities.Account;
-using SimpleBankAPI.Extensions;
 
 namespace SimpleBankAPI.Services;
 
@@ -123,7 +122,10 @@ public class AccountServices: IAccountServices
         {
             throw new EntryPointNotFoundException("Could not find account associated with given ID");
         }
-        currencies = currencies.Format();
+        if (!string.IsNullOrEmpty(currencies))
+        {
+            currencies.Replace(" ", string.Empty).ToUpper();
+        }
         _validators[CurrencyCode]?.Validate(currencies);
         var rates = await _currencyRate.GetConversionRates(currencies?.Trim());
         if (rates.Count == 0)
