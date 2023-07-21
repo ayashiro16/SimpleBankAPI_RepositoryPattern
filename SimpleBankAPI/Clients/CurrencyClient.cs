@@ -14,7 +14,7 @@ public class CurrencyClient: ICurrencyRate
         BaseAddress = new Uri($"{_apiBaseUrl}/v1/latest?apikey={_apiKey}")
     };
 
-    public async Task<Dictionary<string, decimal>?> GetConversionRates(string? currencyCode)
+    public async Task<Dictionary<string, decimal>> GetConversionRates(string? currencyCode)
     {
         var address = new UriBuilder(_currencyClient.BaseAddress);
         address.Query += $"&currencies={currencyCode}";
@@ -28,6 +28,6 @@ public class CurrencyClient: ICurrencyRate
         var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, decimal>>>(responseBody);
         var rates = data?.GetValueOrDefault("data");
 
-        return rates;
+        return rates ?? new Dictionary<string, decimal>();
     }
 }
