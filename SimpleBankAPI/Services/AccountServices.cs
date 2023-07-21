@@ -115,17 +115,14 @@ public class AccountServices: IAccountServices
         return new Transfer(sender, recipient);
     }
 
-    public async Task<IEnumerable<ConvertCurrency>> GetConvertedCurrency(Guid id, string? currencies)
+    public async Task<IEnumerable<ConvertCurrency>> GetConvertedCurrency(Guid id, string currencies)
     {
         var account = await _accountRepository.Get(id);
         if (account is null)
         {
             throw new EntryPointNotFoundException("Could not find account associated with given ID");
         }
-        if (!string.IsNullOrEmpty(currencies))
-        {
-            currencies = currencies.Replace(" ", string.Empty).ToUpper();
-        }
+        currencies = currencies.Replace(" ", string.Empty).ToUpper();
         _validators[CurrencyCode]?.Validate(currencies);
         var rates = await _currencyRate.GetConversionRates(currencies?.Trim());
         if (rates.Count == 0)
