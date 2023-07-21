@@ -38,27 +38,25 @@ namespace SimpleBankAPI.Controllers
         /// Retrieves the converted account balances for a given list of currencies
         /// </summary>
         /// <param name="id">The account ID</param>
-        /// <param name="request">List of currency codes; empty request returns all currencies</param>
+        /// <param name="currencyCodes">List of currency codes; empty request returns all currencies</param>
         /// <returns>List of converted user balances</returns>
-        [HttpGet("{id:Guid}/converts")]
-        public async Task<ActionResult<IEnumerable<ConvertCurrency>>> GetConvertedCurrency(Guid id, string? request)
+        [HttpGet("{id:Guid}/converts/{currencyCodes}")]
+        public async Task<ActionResult<IEnumerable<ConvertCurrency>>> GetConvertedCurrency(Guid id, string? currencyCodes)
         {
             try
             {
-                var converted = await _account.GetConvertedCurrency(id, request);
+                var converted = await _account.GetConvertedCurrency(id, currencyCodes);
                 return new ActionResult<IEnumerable<ConvertCurrency>>(converted);
             }
-            catch (ArgumentException e)
+            catch (Exception e)
             {
-                return BadRequest(e.Message);
-            }
-            catch (EntryPointNotFoundException e)
-            {
-                return Problem(e.Message);
-            }
-            catch (HttpRequestException e)
-            {
-                return Problem(e.Message);
+                return e switch
+                {
+                    ArgumentException => BadRequest(e.Message),
+                    EntryPointNotFoundException => Problem(e.Message),
+                    HttpRequestException => Problem(e.Message),
+                    _ => throw e
+                };
             }
         }
         
@@ -75,13 +73,13 @@ namespace SimpleBankAPI.Controllers
                 var account = await _account.CreateAccount(request.Name);
                 return account;
             }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
             catch (Exception e)
             {
-                throw e;
+                return e switch
+                {
+                    ArgumentException => BadRequest(e.Message),
+                    _ => throw e
+                };
             }
         }
 
@@ -104,16 +102,16 @@ namespace SimpleBankAPI.Controllers
 
                 return account;
             }
-            catch (ArgumentOutOfRangeException e)
-            {
-                return BadRequest(e.Message);
-            }
             catch (Exception e)
             {
-                throw e;
+                return e switch
+                {
+                    ArgumentException => BadRequest(e.Message),
+                    _ => throw e
+                };
             }
         }
-        
+
         /// <summary>
         /// Creates withdrawal to take from an account
         /// </summary>
@@ -133,17 +131,14 @@ namespace SimpleBankAPI.Controllers
 
                 return account;
             }
-            catch (ArgumentOutOfRangeException e)
-            {
-                return BadRequest(e.Message);
-            }
-            catch (InvalidOperationException e)
-            {
-                return BadRequest(e.Message);
-            }
             catch (Exception e)
             {
-                throw e;
+                return e switch
+                {
+                    ArgumentOutOfRangeException => BadRequest(e.Message),
+                    InvalidOperationException => BadRequest(e.Message),
+                    _ => throw e
+                };
             }
         }
 
@@ -166,17 +161,14 @@ namespace SimpleBankAPI.Controllers
                     _ => accounts
                 };
             }
-            catch (ArgumentOutOfRangeException e)
-            {
-                return BadRequest(e.Message);
-            }
-            catch (InvalidOperationException e)
-            {
-                return BadRequest(e.Message);
-            }
             catch (Exception e)
             {
-                throw e;
+                return e switch
+                {
+                    ArgumentOutOfRangeException => BadRequest(e.Message),
+                    InvalidOperationException => BadRequest(e.Message),
+                    _ => throw e
+                };
             }
         }
     }
