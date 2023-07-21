@@ -124,7 +124,7 @@ public class AccountServices: IAccountServices
         }
         if (!string.IsNullOrEmpty(currencies))
         {
-            currencies.Replace(" ", string.Empty).ToUpper();
+            currencies = currencies.Replace(" ", string.Empty).ToUpper();
         }
         _validators[CurrencyCode]?.Validate(currencies);
         var rates = await _currencyRate.GetConversionRates(currencies?.Trim());
