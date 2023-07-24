@@ -3,7 +3,7 @@ using Account = SimpleBankAPI.Models.Entities.Account;
 
 namespace SimpleBankAPI.Data;
 
-public class AccountContext : DbContext, Interfaces.ISavableCollection<Account>
+public class AccountContext : DbContext
 {
     public DbSet<Account> Accounts { private get; init; }
     

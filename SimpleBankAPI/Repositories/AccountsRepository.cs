@@ -1,13 +1,14 @@
-using SimpleBankAPI.Interfaces;
+using AccountContext = SimpleBankAPI.Data.AccountContext;
+using IAccountsRepository = SimpleBankAPI.Interfaces.IAccountsRepository;
 using Account = SimpleBankAPI.Models.Entities.Account;
 
 namespace SimpleBankAPI.Repositories;
 
 public class AccountsRepository : IAccountsRepository
 {
-    private readonly ISavableCollection<Account> _context;
+    private readonly AccountContext _context;
 
-    public AccountsRepository(ISavableCollection<Account> context)
+    public AccountsRepository(AccountContext context)
     {
         _context = context;
     }
