@@ -1,3 +1,4 @@
+using SimpleBankAPI.Exceptions;
 using SimpleBankAPI.Interfaces;
 using SimpleBankAPI.Models.Responses;
 using Account = SimpleBankAPI.Models.Entities.Account;
@@ -51,7 +52,7 @@ public class AccountsService: IAccountsService
         var account = await _accountsRepository.Get(id);
         if (account is null)
         {
-            throw new KeyNotFoundException("Could not find an account associated with the provided ID");
+            throw new AccountNotFoundException();
         }
 
         return account;
@@ -70,7 +71,7 @@ public class AccountsService: IAccountsService
         var account = await _accountsRepository.Get(id);
         if (account is null)
         {
-            throw new KeyNotFoundException("Could not find account associated with that ID");
+            throw new AccountNotFoundException();
         }
         _accountsRepository.Update(account, amount);
         
@@ -91,7 +92,7 @@ public class AccountsService: IAccountsService
         var account = await _accountsRepository.Get(id);
         if (account is null)
         {
-            throw new KeyNotFoundException("Could not find account associated with that ID");
+            throw new AccountNotFoundException();
         }
         _validators[SufficientFunds]?.Validate((account.Balance, amount));
         _accountsRepository.Update(account, amount * -1);
@@ -117,12 +118,9 @@ public class AccountsService: IAccountsService
         {
             return new Transfer(sender, recipient) switch
             {
-                { Sender: null, Recipient: null } => throw new KeyNotFoundException(
-                    "Sender and recipient accounts could not be found"),
-                { Sender: null, Recipient: not null } => throw new KeyNotFoundException(
-                    "Sender account could not be found"),
-                { Sender: not null, Recipient: null } => throw new KeyNotFoundException(
-                    "Recipient account could not be found"),
+                { Sender: null, Recipient: null } => throw new AccountNotFoundException("sender or recipient"),
+                { Sender: null, Recipient: not null } => throw new AccountNotFoundException("sender"),
+                { Sender: not null, Recipient: null } => throw new AccountNotFoundException("recipient"),
             };
         }
         _validators[SufficientFunds]?.Validate((sender.Balance, amount));
@@ -137,7 +135,7 @@ public class AccountsService: IAccountsService
         var account = await _accountsRepository.Get(id);
         if (account is null)
         {
-            throw new EntryPointNotFoundException("Could not find account associated with given ID");
+            throw new NullAccountException();
         }
         currencies = currencies.Replace(" ", string.Empty).ToUpper();
         _validators[CurrencyCode]?.Validate(currencies);
