@@ -1,20 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
+using SimpleBankAPI.Interfaces;
 using SimpleBankAPI.Models.Requests;
 using SimpleBankAPI.Models.Responses;
 using Account = SimpleBankAPI.Models.Entities.Account;
-using IAccountServices = SimpleBankAPI.Interfaces.IAccountServices;
 
 namespace SimpleBankAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountController : ControllerBase
+    public class AccountsController : ControllerBase
     {
-        private readonly IAccountServices _account;
+        private readonly IAccountsService _accountsService;
         
-        public AccountController(IAccountServices account)
+        public AccountsController(IAccountsService account)
         {
-            _account = account;
+            _accountsService = account;
         }
         
         /// <summary>
@@ -25,7 +25,7 @@ namespace SimpleBankAPI.Controllers
         [HttpGet("{id:Guid}")]
         public async Task<ActionResult<Account>> GetAccount(Guid id)
         {
-            var account = await _account.FindAccount(id);
+            var account = await _accountsService.FindAccount(id);
             if (account is null)
             {
                 return NotFound();
@@ -46,7 +46,7 @@ namespace SimpleBankAPI.Controllers
         {
             try
             {
-                var converted = await _account.GetConvertedCurrency(id, currencyCodes);
+                var converted = await _accountsService.GetConvertedCurrency(id, currencyCodes);
                 return new ActionResult<IEnumerable<ConvertCurrency>>(converted);
             }
             catch (Exception e)
@@ -71,7 +71,7 @@ namespace SimpleBankAPI.Controllers
         {
             try
             {
-                var account = await _account.CreateAccount(request.Name);
+                var account = await _accountsService.CreateAccount(request.Name);
                 return account;
             }
             catch (Exception e)
@@ -95,7 +95,7 @@ namespace SimpleBankAPI.Controllers
         {
             try
             {
-                var account = await _account.DepositFunds(id, request.Amount);
+                var account = await _accountsService.DepositFunds(id, request.Amount);
                 if (account is null)
                 {
                     return NotFound();
@@ -124,7 +124,7 @@ namespace SimpleBankAPI.Controllers
         {
             try
             {
-                var account = await _account.WithdrawFunds(id, request.Amount);
+                var account = await _accountsService.WithdrawFunds(id, request.Amount);
                 if (account is null)
                 {
                     return NotFound();
@@ -153,7 +153,7 @@ namespace SimpleBankAPI.Controllers
         {
             try
             {
-                var accounts = await _account.TransferFunds(request.SenderId, request.RecipientId, request.Amount);
+                var accounts = await _accountsService.TransferFunds(request.SenderId, request.RecipientId, request.Amount);
                 return accounts switch
                 {
                     { Sender: null, Recipient: null } => NotFound("Sender and recipient accounts could not be found"),

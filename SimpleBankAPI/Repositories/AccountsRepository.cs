@@ -3,11 +3,11 @@ using Account = SimpleBankAPI.Models.Entities.Account;
 
 namespace SimpleBankAPI.Repositories;
 
-public class AccountRepository : IAccountRepository
+public class AccountsRepository : IAccountsRepository
 {
     private readonly ISavableCollection<Account> _context;
 
-    public AccountRepository(ISavableCollection<Account> context)
+    public AccountsRepository(ISavableCollection<Account> context)
     {
         _context = context;
     }
