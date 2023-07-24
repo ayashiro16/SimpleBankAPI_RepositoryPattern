@@ -46,7 +46,16 @@ public class AccountsService: IAccountsService
     /// </summary>
     /// <param name="id">The account Id</param>
     /// <returns>The account details</returns>
-    public ValueTask<Account?> FindAccount(Guid id) => _accountsRepository.Get(id);
+    public async ValueTask<Account?> FindAccount(Guid id)
+    {
+        var account = await _accountsRepository.Get(id);
+        if (account is null)
+        {
+            throw new KeyNotFoundException("Could not find an account associated with the provided ID");
+        }
+
+        return account;
+    }
     
     /// <summary>
     /// Deposits funds to an account
@@ -106,7 +115,15 @@ public class AccountsService: IAccountsService
         var recipient = await _accountsRepository.Get(recipientId);
         if (sender is null || recipient is null)
         {
-            return new Transfer(sender, recipient);
+            return new Transfer(sender, recipient) switch
+            {
+                { Sender: null, Recipient: null } => throw new KeyNotFoundException(
+                    "Sender and recipient accounts could not be found"),
+                { Sender: null, Recipient: not null } => throw new KeyNotFoundException(
+                    "Sender account could not be found"),
+                { Sender: not null, Recipient: null } => throw new KeyNotFoundException(
+                    "Recipient account could not be found"),
+            };
         }
         _validators[SufficientFunds]?.Validate((sender.Balance, amount));
         _accountsRepository.Update(sender, amount * -1);

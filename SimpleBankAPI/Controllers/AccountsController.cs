@@ -3,6 +3,7 @@ using SimpleBankAPI.Interfaces;
 using SimpleBankAPI.Models.Requests;
 using SimpleBankAPI.Models.Responses;
 using Account = SimpleBankAPI.Models.Entities.Account;
+using Exception = System.Exception;
 
 namespace SimpleBankAPI.Controllers
 {
@@ -25,13 +26,20 @@ namespace SimpleBankAPI.Controllers
         [HttpGet("{id:Guid}")]
         public async Task<ActionResult<Account>> GetAccount(Guid id)
         {
-            var account = await _accountsService.FindAccount(id);
-            if (account is null)
+            try
             {
-                return NotFound();
+                var account = await _accountsService.FindAccount(id);
+                return account;
+            }
+            catch (Exception e)
+            {
+                return e switch
+                {
+                    KeyNotFoundException => NotFound(e.Message),
+                    _ => throw e
+                };
             }
             
-            return account;
         }
         
         /// <summary>
@@ -154,18 +162,13 @@ namespace SimpleBankAPI.Controllers
             try
             {
                 var accounts = await _accountsService.TransferFunds(request.SenderId, request.RecipientId, request.Amount);
-                return accounts switch
-                {
-                    { Sender: null, Recipient: null } => NotFound("Sender and recipient accounts could not be found"),
-                    { Sender: null, Recipient: not null } => NotFound("Sender account could not be found"),
-                    { Sender: not null, Recipient: null } => NotFound("Recipient account could not be found"),
-                    _ => accounts
-                };
+                return accounts;
             }
             catch (Exception e)
             {
                 return e switch
                 {
+                    KeyNotFoundException => NotFound(e.Message),
                     ArgumentOutOfRangeException => BadRequest(e.Message),
                     InvalidOperationException => BadRequest(e.Message),
                     _ => throw e
