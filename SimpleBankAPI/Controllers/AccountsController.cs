@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using SimpleBankAPI.Interfaces;
 using SimpleBankAPI.Models.Requests;
 using SimpleBankAPI.Models.Responses;
+using SimpleBankAPI.Exceptions;
 using Account = SimpleBankAPI.Models.Entities.Account;
-using Exception = System.Exception;
 
 namespace SimpleBankAPI.Controllers
 {
@@ -35,7 +35,7 @@ namespace SimpleBankAPI.Controllers
             {
                 return e switch
                 {
-                    KeyNotFoundException => NotFound(e.Message),
+                    AccountNotFoundException => NotFound(e.Message),
                     _ => throw e
                 };
             }
@@ -62,7 +62,7 @@ namespace SimpleBankAPI.Controllers
                 return e switch
                 {
                     ArgumentException => BadRequest(e.Message),
-                    EntryPointNotFoundException => Problem(e.Message),
+                    NullAccountException => Problem(e.Message),
                     HttpRequestException => Problem(e.Message),
                     _ => throw e
                 };
@@ -110,7 +110,7 @@ namespace SimpleBankAPI.Controllers
             {
                 return e switch
                 {
-                    KeyNotFoundException => NotFound(e.Message),
+                    AccountNotFoundException => NotFound(e.Message),
                     ArgumentException => BadRequest(e.Message),
                     _ => throw e
                 };
@@ -135,7 +135,7 @@ namespace SimpleBankAPI.Controllers
             {
                 return e switch
                 {
-                    KeyNotFoundException => NotFound(e.Message),
+                    AccountNotFoundException => NotFound(e.Message),
                     ArgumentOutOfRangeException => BadRequest(e.Message),
                     InvalidOperationException => BadRequest(e.Message),
                     _ => throw e
@@ -160,7 +160,7 @@ namespace SimpleBankAPI.Controllers
             {
                 return e switch
                 {
-                    KeyNotFoundException => NotFound(e.Message),
+                    AccountNotFoundException => NotFound(e.Message),
                     ArgumentOutOfRangeException => BadRequest(e.Message),
                     InvalidOperationException => BadRequest(e.Message),
                     _ => throw e
