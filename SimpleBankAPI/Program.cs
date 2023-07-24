@@ -19,8 +19,8 @@ services.AddSwaggerGen();
 services.AddSingleton<ICurrencyRate, CurrencyClient>();
 services.AddSingleton<IFactory<IValidator?>, ValidatorFactory>();
 services.AddTransient<ISavableCollection<Account>, AccountContext>();
-services.AddTransient<IAccountRepository, AccountRepository>();
-services.AddTransient<IAccountServices, AccountServices>();
+services.AddTransient<IAccountsRepository, AccountsRepository>();
+services.AddTransient<IAccountsService, AccountsService>();
 
 var app = builder.Build();
 

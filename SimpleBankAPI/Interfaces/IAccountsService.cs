@@ -3,7 +3,7 @@ using Account = SimpleBankAPI.Models.Entities.Account;
 
 namespace SimpleBankAPI.Interfaces;
 
-public interface IAccountServices
+public interface IAccountsService
 {
     Task<Account> CreateAccount(string name);
     ValueTask<Account?> FindAccount(Guid id);

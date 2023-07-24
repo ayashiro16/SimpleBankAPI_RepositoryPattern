@@ -4,9 +4,9 @@ using Account = SimpleBankAPI.Models.Entities.Account;
 
 namespace SimpleBankAPI.Services;
 
-public class AccountServices: IAccountServices
+public class AccountsService: IAccountsService
 {
-    private readonly IAccountRepository _accountRepository;
+    private readonly IAccountsRepository _accountsRepository;
     private readonly ICurrencyRate _currencyRate;
     private readonly IFactory<IValidator?> _validators;
     private const string Username = "Username";
@@ -14,9 +14,9 @@ public class AccountServices: IAccountServices
     private const string CurrencyCode = "CurrencyCode";
     private const string SufficientFunds = "SufficientFunds";
 
-    public AccountServices(IAccountRepository accountRepository, ICurrencyRate currencyRate, IFactory<IValidator?> validators)
+    public AccountsService(IAccountsRepository accountsRepository, ICurrencyRate currencyRate, IFactory<IValidator?> validators)
     {
-        _accountRepository = accountRepository;
+        _accountsRepository = accountsRepository;
         _currencyRate = currencyRate;
         _validators = validators;
     }
@@ -36,7 +36,7 @@ public class AccountServices: IAccountServices
             Balance = 0, 
             Id = Guid.NewGuid()
         };
-        _accountRepository.Add(account);
+        _accountsRepository.Add(account);
 
         return account;
     }
@@ -46,7 +46,7 @@ public class AccountServices: IAccountServices
     /// </summary>
     /// <param name="id">The account Id</param>
     /// <returns>The account details</returns>
-    public ValueTask<Account?> FindAccount(Guid id) => _accountRepository.Get(id);
+    public ValueTask<Account?> FindAccount(Guid id) => _accountsRepository.Get(id);
     
     /// <summary>
     /// Deposits funds to an account
@@ -58,12 +58,12 @@ public class AccountServices: IAccountServices
     public async Task<Account?> DepositFunds(Guid id, decimal amount)
     {
         _validators[Amount]?.Validate(amount);
-        var account = await _accountRepository.Get(id);
+        var account = await _accountsRepository.Get(id);
         if (account is null)
         {
             return account;
         }
-        _accountRepository.Update(account, amount);
+        _accountsRepository.Update(account, amount);
         
         return account;
     }
@@ -79,13 +79,13 @@ public class AccountServices: IAccountServices
     public async Task<Account?> WithdrawFunds(Guid id, decimal amount)
     {
         _validators[Amount]?.Validate(amount);
-        var account = await _accountRepository.Get(id);
+        var account = await _accountsRepository.Get(id);
         if (account is null)
         {
             return account;
         }
         _validators[SufficientFunds]?.Validate((account.Balance, amount));
-        _accountRepository.Update(account, amount * -1);
+        _accountsRepository.Update(account, amount * -1);
         
         return account;
     }
@@ -102,22 +102,22 @@ public class AccountServices: IAccountServices
     public async Task<Transfer> TransferFunds(Guid senderId, Guid recipientId, decimal amount)
     {
         _validators[Amount]?.Validate(amount);
-        var sender = await _accountRepository.Get(senderId);
-        var recipient = await _accountRepository.Get(recipientId);
+        var sender = await _accountsRepository.Get(senderId);
+        var recipient = await _accountsRepository.Get(recipientId);
         if (sender is null || recipient is null)
         {
             return new Transfer(sender, recipient);
         }
         _validators[SufficientFunds]?.Validate((sender.Balance, amount));
-        _accountRepository.Update(sender, amount * -1);
-        _accountRepository.Update(recipient, amount);
+        _accountsRepository.Update(sender, amount * -1);
+        _accountsRepository.Update(recipient, amount);
 
         return new Transfer(sender, recipient);
     }
 
     public async Task<IEnumerable<ConvertCurrency>> GetConvertedCurrency(Guid id, string currencies)
     {
-        var account = await _accountRepository.Get(id);
+        var account = await _accountsRepository.Get(id);
         if (account is null)
         {
             throw new EntryPointNotFoundException("Could not find account associated with given ID");
