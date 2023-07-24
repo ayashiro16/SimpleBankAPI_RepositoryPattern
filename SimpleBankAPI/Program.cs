@@ -21,7 +21,6 @@ services.AddSingleton<ICurrencyRate, CurrencyClient>();
 services.AddHttpClient<ICurrencyRate, CurrencyClient>(client => 
     client.BaseAddress = new Uri($"https://api.freecurrencyapi.com/v1/latest?apikey={currencyKey}"));
 services.AddSingleton<IFactory<IValidator?>, ValidatorFactory>();
-services.AddTransient<AccountContext>();
 services.AddTransient<IAccountsRepository, AccountsRepository>();
 services.AddTransient<IAccountsService, AccountsService>();
 
