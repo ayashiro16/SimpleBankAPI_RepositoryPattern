@@ -6,17 +6,16 @@ namespace SimpleBankAPI.Clients;
 
 public class CurrencyClient: ICurrencyRate
 {
-    private const string _apiBaseUrl = "https://api.freecurrencyapi.com";
-    private const string _apiKey = "fca_live_05342JeoKSmZWQYxyZpESGfZess61hoVb8qTguW5";
+    private readonly HttpClient _currencyClient;
 
-    private static readonly HttpClient _currencyClient = _currencyClient = new()
+    public CurrencyClient(HttpClient currencyClient)
     {
-        BaseAddress = new Uri($"{_apiBaseUrl}/v1/latest?apikey={_apiKey}")
-    };
+        _currencyClient = currencyClient;
+    }
 
     public async Task<Dictionary<string, decimal>> GetConversionRates(string? currencyCode)
     {
-        var address = new UriBuilder(_currencyClient.BaseAddress);
+        var address = new UriBuilder(_currencyClient.BaseAddress!);
         address.Query += $"&currencies={currencyCode}";
         var response = await _currencyClient.GetAsync(address.ToString());
         if (response.StatusCode == HttpStatusCode.UnprocessableEntity)

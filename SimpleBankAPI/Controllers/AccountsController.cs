@@ -13,9 +13,9 @@ namespace SimpleBankAPI.Controllers
     {
         private readonly IAccountsService _accountsService;
         
-        public AccountsController(IAccountsService account)
+        public AccountsController(IAccountsService accountsService)
         {
-            _accountsService = account;
+            _accountsService = accountsService;
         }
         
         /// <summary>
@@ -104,17 +104,13 @@ namespace SimpleBankAPI.Controllers
             try
             {
                 var account = await _accountsService.DepositFunds(id, request.Amount);
-                if (account is null)
-                {
-                    return NotFound();
-                }
-
                 return account;
             }
             catch (Exception e)
             {
                 return e switch
                 {
+                    KeyNotFoundException => NotFound(e.Message),
                     ArgumentException => BadRequest(e.Message),
                     _ => throw e
                 };
@@ -133,17 +129,13 @@ namespace SimpleBankAPI.Controllers
             try
             {
                 var account = await _accountsService.WithdrawFunds(id, request.Amount);
-                if (account is null)
-                {
-                    return NotFound();
-                }
-
                 return account;
             }
             catch (Exception e)
             {
                 return e switch
                 {
+                    KeyNotFoundException => NotFound(e.Message),
                     ArgumentOutOfRangeException => BadRequest(e.Message),
                     InvalidOperationException => BadRequest(e.Message),
                     _ => throw e
