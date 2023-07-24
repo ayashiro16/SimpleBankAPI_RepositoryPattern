@@ -70,7 +70,7 @@ public class AccountsService: IAccountsService
         var account = await _accountsRepository.Get(id);
         if (account is null)
         {
-            return account;
+            throw new KeyNotFoundException("Could not find account associated with that ID");
         }
         _accountsRepository.Update(account, amount);
         
@@ -91,7 +91,7 @@ public class AccountsService: IAccountsService
         var account = await _accountsRepository.Get(id);
         if (account is null)
         {
-            return account;
+            throw new KeyNotFoundException("Could not find account associated with that ID");
         }
         _validators[SufficientFunds]?.Validate((account.Balance, amount));
         _accountsRepository.Update(account, amount * -1);

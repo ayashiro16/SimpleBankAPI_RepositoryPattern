@@ -8,6 +8,7 @@ using SimpleBankAPI.Models.Entities;
 using SimpleBankAPI.Factories;
 
 var builder = WebApplication.CreateBuilder(args);
+var currencyKey = builder.Configuration.GetValue<string>("CURRENCY_API_KEY");
 
 var services = builder.Services;
 
@@ -17,6 +18,8 @@ services.AddDbContext<AccountContext>(opt =>
 services.AddEndpointsApiExplorer();
 services.AddSwaggerGen();
 services.AddSingleton<ICurrencyRate, CurrencyClient>();
+services.AddHttpClient<ICurrencyRate, CurrencyClient>(client => 
+    client.BaseAddress = new Uri($"https://api.freecurrencyapi.com/v1/latest?apikey={currencyKey}"));
 services.AddSingleton<IFactory<IValidator?>, ValidatorFactory>();
 services.AddTransient<ISavableCollection<Account>, AccountContext>();
 services.AddTransient<IAccountsRepository, AccountsRepository>();
